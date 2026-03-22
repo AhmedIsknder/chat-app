@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>Chat</title>
+<style>
+body {
+  background: #111;
+  color: white;
+  text-align: center;
+  font-family: Arial;
+}
+#chat {
+  height: 300px;
+  overflow: auto;
+  border: 1px solid #444;
+  margin: 10px;
+  padding: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>💬 شات بسيط</h2>
+
+<div id="chat"></div>
+
+<input id="msg" placeholder="اكتب رسالة">
+<button onclick="send()">إرسال</button>
+
+<br><br>
+
+<input type="file" id="file">
+<button onclick="upload()">رفع ملف</button>
+
+<script src="/socket.io/socket.io.js"></script>
+
+<script>
+let name = prompt("اسمك؟");
+const socket = io();
+
+socket.emit("join", name);
+
+socket.on("message", (data) => {
+  document.getElementById("chat").innerHTML += "<p>" + data + "</p>";
+});
+
+function send() {
+  let msg = document.getElementById("msg").value;
+  socket.emit("message", name + ": " + msg);
+}
+
+function upload() {
+  let file = document.getElementById("file").files[0];
+  let formData = new FormData();
+  formData.append("file", file);
+
+  fetch("/upload", {
+    method: "POST",
+    body: formData
+  })
+  .then(res => res.json())
+  .then(data => {
+    socket.emit("message", name + ": 📁 " + data.file);
+  });
+}
+</script>
+
+</body>
+</html>
